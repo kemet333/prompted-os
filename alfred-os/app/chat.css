@@ -1,0 +1,119 @@
+/* ---------- Chat de Alfred (11/11/2026, Owner: «mejora la interfaz del chat») ----------
+   Una conversación de verdad sobre la barra: hoja centrada del mismo ancho que la barra, tus mensajes como burbuja a la
+   derecha y Alfred a lo ancho, con formato (listas, negrita, código, enlaces), separadores de día, herramientas al pasar
+   (Escuchar, Copiar), sugerencias al empezar y «Último mensaje» si has subido a leer. Se carga el último. */
+.jarvis{--c-ink:#ecebf1;--c-soft:#a9a7b4;--c-faint:#73717e;--c-line:rgba(255,255,255,.08);--c-fill:rgba(255,255,255,.055);--c-gold:#d4ae70;--c-ease:cubic-bezier(.32,.72,0,1)}
+
+/* Hoja: alineada con la barra, encima de ella */
+.jarvis .j-chat{left:50%!important;right:auto!important;transform:translateX(-50%);width:min(720px,calc(100% - 48px))!important;bottom:calc(132px + var(--j-bar-grow,0px))!important;transition:bottom .25s var(--c-ease);
+ max-height:min(640px,calc(100dvh - 220px - var(--j-bar-grow,0px)))!important;border-radius:22px!important;border:1px solid rgba(255,255,255,.09)!important;
+ background:linear-gradient(170deg,rgba(30,31,38,.92),rgba(20,21,27,.94))!important;box-shadow:0 40px 100px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.06)!important;
+ animation:c-rise .45s var(--c-ease)}
+.jarvis.native-host .j-chat{background:linear-gradient(170deg,rgba(255,255,255,.075),rgba(255,255,255,.03))!important;backdrop-filter:blur(34px) saturate(1.4)!important;-webkit-backdrop-filter:blur(34px) saturate(1.4)!important}
+@keyframes c-rise{from{opacity:0;transform:translate(-50%,14px) scale(.985)}to{opacity:1;transform:translate(-50%,0)}}
+.jarvis .j-chat-header{padding:14px 18px 12px 22px!important;border-bottom:1px solid var(--c-line)!important}
+.jarvis .j-chat-header strong{font:500 15px/1 -apple-system,BlinkMacSystemFont,system-ui,sans-serif!important;letter-spacing:-.01em;color:var(--c-ink)}
+.jarvis .j-chat-header span{font:12px -apple-system,system-ui,sans-serif!important;color:var(--c-faint)!important;margin-left:4px!important}
+.jarvis .j-chat-header i{width:7px!important;height:7px!important;background:var(--c-gold)!important;box-shadow:0 0 12px rgba(212,174,112,.6)}
+.jarvis .j-chat-messages{padding:22px 24px 10px!important;scroll-behavior:smooth;position:relative}
+
+/* Mensajes */
+.jarvis .j-message{margin:0 0 18px!important;padding:0!important;border:0!important;font-size:14.5px!important;line-height:1.62!important;color:var(--c-ink)}
+.jarvis .j-message.is-follow{margin-top:-8px!important}
+.jarvis .j-message-meta{font:12px -apple-system,system-ui,sans-serif!important;letter-spacing:0!important;color:var(--c-faint)!important;margin-bottom:6px!important;gap:6px!important}
+.jarvis .j-message-meta b{font-weight:600;color:var(--c-soft)}
+.jarvis .j-message.assistant .j-message-meta b{color:var(--c-gold)}
+.jarvis .j-message-meta time{opacity:0;transition:opacity .25s}
+.jarvis .j-message:hover .j-message-meta time,.jarvis .j-message:focus-within .j-message-meta time{opacity:1}
+.jarvis .j-message.is-follow .j-message-meta{display:none!important}
+.jarvis .j-message.user{background:none!important;box-shadow:none!important;display:flex;flex-direction:column;align-items:flex-end;color:var(--c-ink)!important;margin-left:15%!important}
+.jarvis .j-message.user .j-message-meta{justify-content:flex-end}
+.jarvis .j-message.user .j-message-meta b{display:none}
+.jarvis .j-message.user .j-message-meta time{margin-left:0!important}
+.jarvis .j-message.user .j-rich{background:var(--c-fill);border:1px solid var(--c-line);border-radius:18px 18px 6px 18px;padding:10px 15px;max-width:100%}
+.jarvis .j-message.live .j-rich{opacity:.92}
+
+/* Formato */
+.jarvis .j-rich>*+*{margin-top:.65em}
+.jarvis .j-rich p{overflow-wrap:anywhere}
+.jarvis .j-rich ul,.jarvis .j-rich ol{padding-left:1.25em;margin:0}
+.jarvis .j-rich ul{list-style:none;padding-left:1em}
+.jarvis .j-rich ul li{position:relative}
+.jarvis .j-rich ul li::before{content:"";position:absolute;left:-.85em;top:.68em;width:4px;height:4px;border-radius:50%;background:var(--c-gold)}
+.jarvis .j-rich ol{list-style:decimal}
+.jarvis .j-rich ol li::marker{color:var(--c-gold);font-variant-numeric:tabular-nums}
+.jarvis .j-rich li+li{margin-top:.3em}
+.jarvis .j-rich strong{font-weight:600;color:#fff}
+.jarvis .j-rich code{font:12.5px ui-monospace,SFMono-Regular,Menlo,monospace;background:rgba(255,255,255,.08);border:1px solid var(--c-line);border-radius:6px;padding:1px 6px;overflow-wrap:anywhere}
+.jarvis .j-rich a{color:#9fc4f2;text-decoration:underline;text-decoration-color:rgba(159,196,242,.35);text-underline-offset:3px}
+.jarvis .j-rich a:hover{text-decoration-color:currentColor}
+
+/* Herramientas de cada respuesta: aparecen al pasar o con el teclado; en táctil, siempre */
+.jarvis .j-msg-tools{display:flex;gap:4px;margin:4px 0 0 -8px;opacity:0;transition:opacity .25s}
+.jarvis .j-message:hover .j-msg-tools,.jarvis .j-message:focus-within .j-msg-tools,.jarvis .j-message:last-of-type .j-msg-tools{opacity:1}
+@media (hover:none){.jarvis .j-msg-tools{opacity:1}}
+.jarvis .j-tool{display:inline-flex;align-items:center;gap:5px;font-size:12px;color:var(--c-faint);padding:4px 8px;border-radius:8px;white-space:nowrap;transition:background .2s,color .2s}
+.jarvis .j-tool:hover{background:var(--c-fill);color:var(--c-ink)}
+.jarvis .u-read-reply{display:none!important}
+.jarvis .j-proposal{margin-top:8px!important;border-radius:12px!important;font-size:13px!important;padding:9px 13px!important;color:var(--c-ink)!important;border-color:rgba(212,174,112,.3)!important;background:rgba(212,174,112,.06)!important}
+.jarvis .j-proposal:hover{background:rgba(212,174,112,.12)!important}
+
+/* Separador de día */
+.jarvis .j-day{display:flex;align-items:center;gap:12px;margin:6px 0 18px;color:var(--c-faint);font-size:11.5px;text-transform:capitalize}
+.jarvis .j-day::before,.jarvis .j-day::after{content:"";flex:1;height:1px;background:var(--c-line)}
+
+/* Bienvenida con sugerencias */
+.jarvis .j-chat-welcome{padding:18px 4px 22px!important}
+.jarvis .j-chat-welcome>span{font:500 26px/1.15 -apple-system,BlinkMacSystemFont,system-ui,sans-serif!important;letter-spacing:-.02em;color:var(--c-ink)}
+.jarvis .j-chat-welcome p{font-size:14.5px!important;color:var(--c-soft)!important;max-width:420px!important;line-height:1.6!important}
+.jarvis .j-suggest{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px}
+.jarvis .j-suggest button{font-size:13px;color:var(--c-ink);background:var(--c-fill);border:1px solid var(--c-line);border-radius:999px;padding:8px 14px;transition:background .2s,border-color .2s,transform .35s var(--c-ease)}
+.jarvis .j-suggest button:hover{background:rgba(255,255,255,.09);border-color:rgba(255,255,255,.16);transform:translateY(-1px)}
+
+/* Ir al final */
+.jarvis .j-to-end{position:absolute;left:50%;bottom:58px;transform:translateX(-50%);display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--c-ink);background:rgba(40,41,50,.92);border:1px solid rgba(255,255,255,.12);border-radius:999px;padding:7px 13px;box-shadow:0 10px 30px rgba(0,0,0,.4);animation:c-pop .3s var(--c-ease);z-index:2}
+@keyframes c-pop{from{opacity:0;transform:translate(-50%,6px)}to{opacity:1;transform:translate(-50%,0)}}
+.jarvis .j-chat-pending{font:13px/1.6 -apple-system,system-ui,sans-serif!important;color:var(--c-soft)!important}
+.jarvis .j-chat-foot{font:12px -apple-system,system-ui,sans-serif!important;color:var(--c-faint)!important;padding:10px 20px!important;border-top:1px solid var(--c-line)!important}
+
+/* Barra: caja de texto que crece hasta 6 líneas (Intro envía, Mayús+Intro salta de línea) */
+.jarvis .j-command-bar{height:auto!important;min-height:58px}
+.jarvis .j-command-bar textarea{flex:1;min-width:0;resize:none;border:0;outline:none!important;background:none;color:var(--c-ink);font:14px/1.5 -apple-system,BlinkMacSystemFont,system-ui,sans-serif;padding:9px 8px;max-height:160px;overflow-y:auto;scrollbar-width:thin}
+.jarvis .j-command-bar textarea::placeholder{color:#8f8d9a}
+
+@media (max-width:640px){
+ .jarvis .j-chat{width:calc(100% - 24px)!important;bottom:calc(120px + var(--j-bar-grow,0px))!important;max-height:calc(100dvh - 190px)!important;border-radius:18px!important}
+ .jarvis .j-chat-messages{padding:18px 16px 8px!important}
+ .jarvis .j-message{font-size:14px!important}
+ .jarvis .j-message.user{margin-left:10%!important}
+}
+@media (prefers-reduced-motion:reduce){.jarvis .j-chat,.jarvis .j-to-end{animation:none}}
+
+/* ---------- Agentes (21/11/2026, «Alfred, una sola puerta») ----------
+   Una línea bajo la cabecera: quién trabaja y qué te espera (equipo y Hermes). Se despliega al tocarla; datos reales. */
+.jarvis .j-agents{border-bottom:1px solid var(--c-line);flex:none}
+.jarvis .j-agents-head{display:flex;align-items:center;gap:8px;width:100%;padding:9px 18px 9px 22px;border:0;background:none;color:var(--c-soft);font:12px/1.3 -apple-system,BlinkMacSystemFont,system-ui,sans-serif;text-align:left;cursor:pointer}
+.jarvis .j-agents-head:hover{background:var(--c-fill)}
+.jarvis .j-agents-head:focus-visible{outline:2px solid rgba(255,255,255,.25);outline-offset:-2px}
+.jarvis .j-agents-head i{width:6px;height:6px;border-radius:50%;background:var(--c-faint);flex:none}
+.jarvis .j-agents-head i.on{background:#65db98;box-shadow:0 0 0 3px rgba(101,219,152,.14)}
+.jarvis .j-agents-head b{font-weight:500;color:var(--c-ink)}
+.jarvis .j-agents-head span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.jarvis .j-agents-head svg{flex:none;transition:transform .25s var(--c-ease)}
+.jarvis .j-agents.open .j-agents-head svg{transform:rotate(180deg)}
+.jarvis .j-agents-body{max-height:min(280px,38dvh);overflow:auto;padding:2px 18px 12px 22px}
+.jarvis .j-agents-body ul{list-style:none;margin:0;padding:0}
+.jarvis .j-agents-body ul+ul{margin-top:6px;padding-top:6px;border-top:1px solid var(--c-line)}
+.jarvis .j-agents-body li{padding:7px 0}
+.jarvis .j-agents-body li small{display:block;font:600 10px/1.3 -apple-system,BlinkMacSystemFont,system-ui,sans-serif;letter-spacing:.06em;text-transform:uppercase;color:var(--c-faint)}
+.jarvis .j-agents-body li.wait small{color:var(--c-gold)}
+.jarvis .j-agents-body li p{margin:3px 0 0;font:13px/1.4 -apple-system,BlinkMacSystemFont,system-ui,sans-serif;color:var(--c-ink);overflow-wrap:anywhere}
+.jarvis .j-agents-body li em{display:block;margin-top:2px;font:normal 12px/1.4 -apple-system,system-ui,sans-serif;color:var(--c-soft)}
+.jarvis .j-agents-acts{display:flex;flex-wrap:wrap;gap:6px;margin-top:7px}
+.jarvis .j-agents-acts button{display:inline-flex;align-items:center;gap:5px;height:26px!important;min-height:0!important;padding:0 11px!important;margin:0!important;border:0;border-radius:99px!important;background:var(--c-ink);color:#111216;font:500 12px/1 -apple-system,system-ui,sans-serif;cursor:pointer}
+.jarvis .j-agents-acts button.quiet{background:var(--c-fill);color:var(--c-soft);box-shadow:inset 0 0 0 1px var(--c-line)}
+.jarvis .j-agents-acts button:disabled{opacity:.5;cursor:default}
+.jarvis .j-agents-note{margin:6px 0 0;font:12px/1.4 -apple-system,system-ui,sans-serif;color:var(--c-soft)}
+.jarvis .j-agents-tip{margin:8px 0 0;font:12px/1.4 -apple-system,system-ui,sans-serif;color:var(--c-faint)}
+/* Narrow: the thread wins the header; the model pill and «Tu conversación» step aside (the model still shows per turn) */
+@media(max-width:600px){.jarvis .j-hilo-pill{max-width:132px}.jarvis .j-hilo-pill~.j-model-pill{display:none}.jarvis .j-chat-header>div>span{display:none}.jarvis .j-agents-head,.jarvis .j-agents-body{padding-left:16px;padding-right:14px}}

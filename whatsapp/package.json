@@ -1,0 +1,11 @@
+{
+  "name": "alfred-whatsapp",
+  "private": true,
+  "type": "module",
+  "description": "Alfred en un grupo de WhatsApp: inbox de ideas y conversación con Alfred (dispositivo vinculado del número de Alfred).",
+  "scripts": {"test": "node --test puente-checks.mjs"},
+  "dependencies": {
+    "@whiskeysockets/baileys": "7.0.0-rc14",
+    "qrcode": "1.5.4"
+  }
+}

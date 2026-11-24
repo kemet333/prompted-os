@@ -1,0 +1,283 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hermes</title>
+<style>
+/* Hermes: misma línea que Alfred (oscuro, sobrio, Apple). Una acción clara cada vez; el resto, plegado. */
+:root{
+  --bg:#0b0c0e;--panel:rgba(255,255,255,.035);--panel2:rgba(255,255,255,.06);--line:rgba(255,255,255,.08);--line2:rgba(255,255,255,.14);
+  --ink:#f2f3f5;--ink2:rgba(242,243,245,.66);--ink3:rgba(242,243,245,.42);--acc:#8ab4ff;--ok:#6fdc9a;--warn:#ffcc66;--bad:#ff7a70;
+  --r:14px;--ease:cubic-bezier(.32,.72,0,1);--mono:ui-monospace,"SF Mono",monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{background:var(--bg);color:var(--ink);font:15px/1.5 -apple-system,BlinkMacSystemFont,"SF Pro Text",system-ui,sans-serif;-webkit-font-smoothing:antialiased;display:grid;grid-template-columns:290px 1fr;overflow:hidden}
+button,select{font:inherit;color:inherit}
+button{background:none;border:0;cursor:pointer}
+:focus-visible{outline:2px solid var(--acc);outline-offset:2px;border-radius:8px}
+aside{border-right:1px solid var(--line);display:flex;flex-direction:column;min-height:0;background:rgba(255,255,255,.015)}
+.brand{padding:18px 18px 12px;display:flex;align-items:center;gap:10px}
+.brand b{font-weight:600;letter-spacing:-.01em}
+.tag{font-size:11px;border-radius:999px;padding:1px 8px;border:1px solid var(--line2);color:var(--ink2)}
+.tag.seco{color:var(--warn);border-color:rgba(255,204,102,.35)}.tag.noche{color:var(--acc);border-color:rgba(138,180,255,.35)}
+.nuevo{margin:0 12px 10px;padding:9px 12px;border-radius:10px;background:var(--panel2);border:1px solid var(--line);text-align:left;color:var(--ink2);transition:background .3s}
+.nuevo:hover{background:rgba(255,255,255,.09);color:var(--ink)}
+.lista{overflow:auto;padding:4px 8px 8px;flex:1}
+.it{width:100%;text-align:left;padding:10px;border-radius:10px;display:grid;gap:3px;transition:background .25s}
+.it:hover{background:var(--panel)}.it.on{background:var(--panel2)}
+.it .t{font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.it .s{font-size:12px;color:var(--ink3);display:flex;align-items:center;gap:6px}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--ink3);flex:none}
+.dot.contrato,.dot.planificando,.dot.en_marcha{background:var(--acc);animation:p 1.8s var(--ease) infinite}
+.dot.esperando_aprobacion,.dot.esperando_contrato,.dot.necesita_owner{background:var(--warn)}
+.dot.hecho{background:var(--ok)}
+@keyframes p{50%{opacity:.35}}
+details.panel{border-top:1px solid var(--line);padding:10px 16px;font-size:12px;color:var(--ink2)}
+details.panel summary{cursor:pointer;list-style:none;color:var(--ink3);letter-spacing:.02em}
+details.panel summary::-webkit-details-marker{display:none}
+details.panel summary::after{content:" ›";}
+details.panel[open] summary::after{content:" ⌄"}
+.conf{display:grid;grid-template-columns:1fr auto;gap:6px 10px;align-items:center;margin-top:8px}
+.conf select{background:var(--panel2);border:1px solid var(--line2);border-radius:8px;padding:3px 6px;font-size:12px}
+.conf small{grid-column:1/-1;color:var(--ink3);margin-top:-4px}
+table{width:100%;border-collapse:collapse;margin-top:8px}
+td,th{padding:3px 0;text-align:left;font-weight:400}th{color:var(--ink3)}
+td.g{color:var(--ok)}
+.uso{border-top:1px solid var(--line);padding:12px 16px 14px;font-size:12px;color:var(--ink3);display:grid;gap:6px}
+.bar{height:4px;border-radius:2px;background:var(--line);overflow:hidden}.bar i{display:block;height:100%;background:var(--acc);transition:width .6s var(--ease)}
+.freno{color:var(--warn)}
+main{display:flex;flex-direction:column;min-height:0;min-width:0}
+header{padding:14px 24px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:12px;min-height:62px}
+header h1{font-size:15px;font-weight:600;flex:1;min-width:160px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chip{font-size:12px;color:var(--ink2);border:1px solid var(--line2);border-radius:999px;padding:3px 10px;white-space:nowrap}
+.meta-chip{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--ink2);min-width:0;white-space:nowrap;overflow:hidden}
+@media (max-width:1000px){.meta-chip .nom{display:none}}
+.meta-chip .bar{width:80px}.meta-chip .bar i{background:var(--ok)}
+.parar{font-size:13px;color:var(--bad);border:1px solid rgba(255,122,112,.35);border-radius:999px;padding:5px 12px;transition:background .25s}
+.parar:hover{background:rgba(255,122,112,.12)}
+.conv{flex:1;overflow:auto;padding:24px;display:flex;flex-direction:column;gap:10px}
+.msg{max-width:min(680px,86%);padding:10px 14px;border-radius:16px;white-space:pre-wrap;word-wrap:break-word;animation:in .4s var(--ease)}
+@keyframes in{from{opacity:0;transform:translateY(6px)}}
+.msg.hermes{background:var(--panel2);border:1px solid var(--line);align-self:flex-start;border-bottom-left-radius:6px}
+.msg.owner{background:rgba(138,180,255,.16);border:1px solid rgba(138,180,255,.25);align-self:flex-end;border-bottom-right-radius:6px}
+.msg small{display:block;margin-top:4px;font-size:11px;color:var(--ink3)}
+.card{align-self:stretch;max-width:780px;border:1px solid var(--line2);border-radius:var(--r);background:var(--panel);padding:16px;display:grid;gap:12px;animation:in .4s var(--ease)}
+.card h3{font-size:13px;font-weight:600;color:var(--ink2);display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.card h3 span{font-weight:400;color:var(--ink3)}
+.card .res{font-size:15px}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;font-size:13px}.kv dt{color:var(--ink3)}
+.tarea{border-top:1px solid var(--line);padding-top:10px;display:grid;gap:4px}
+.tarea .tt{display:flex;gap:8px;align-items:baseline;justify-content:space-between}
+.tarea .tt b{font-weight:500}
+.motor{font-size:11px;font-family:var(--mono);color:var(--ink3);margin-right:6px}
+.meta{font-size:12px;color:var(--ink3);font-family:var(--mono);overflow-wrap:anywhere}
+.det,.resu{font-size:13px;color:var(--ink2);white-space:pre-wrap}
+.crit{font-size:13px;display:grid;gap:2px}.crit .ok{color:var(--ok)}.crit .no{color:var(--bad)}
+.est{font-size:11px;border-radius:999px;padding:1px 8px;border:1px solid var(--line2);color:var(--ink2);white-space:nowrap}
+.est.done{color:var(--ok);border-color:rgba(111,220,154,.4)}.est.running{color:var(--acc);border-color:rgba(138,180,255,.4)}
+.est.blocked,.est.triage,.est.error{color:var(--bad);border-color:rgba(255,122,112,.4)}
+.imp{font-size:12px;color:var(--warn)}
+.debate{font-size:13px;color:var(--ink2);background:rgba(255,255,255,.03);border-radius:10px;padding:10px 12px;display:grid;gap:4px}
+.debate b{color:var(--ink);font-weight:500}
+.caps{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px}
+.caps a{flex:none;border:1px solid var(--line2);border-radius:10px;overflow:hidden;display:block;transition:transform .3s var(--ease)}
+.caps a:hover{transform:translateY(-2px)}
+.caps img{display:block;height:140px;width:auto}
+.acciones{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.btn{padding:9px 16px;border-radius:999px;font-weight:500;transition:transform .3s var(--ease),background .25s,opacity .25s}
+.btn.pri{background:var(--ink);color:#0b0c0e}.btn.pri:hover{transform:translateY(-1px)}.btn.pri:active{transform:scale(.97)}
+.btn.pri:disabled{opacity:.4;cursor:not-allowed;transform:none}
+.btn.sec{color:var(--ink2);border:1px solid var(--line2)}.btn.sec:hover{color:var(--ink)}
+.check{font-size:13px;color:var(--warn);display:flex;gap:8px;align-items:center}
+.vacio{margin:auto;max-width:480px;text-align:center;color:var(--ink2);display:grid;gap:10px}
+.vacio h2{font-size:22px;font-weight:600;color:var(--ink);letter-spacing:-.02em}
+footer{border-top:1px solid var(--line);padding:14px 24px 18px}
+form{display:flex;gap:10px;align-items:flex-end}
+textarea{flex:1;resize:none;min-height:46px;max-height:160px;background:var(--panel2);border:1px solid var(--line2);border-radius:14px;color:var(--ink);font:inherit;padding:12px 14px;outline:none;transition:border-color .25s}
+textarea:focus{border-color:rgba(138,180,255,.5)}
+#proyecto{background:var(--panel2);color:var(--ink2);border:1px solid var(--line2);border-radius:10px;padding:10px;font-size:13px}
+.err{min-height:18px;font-size:13px;color:var(--bad);margin-top:6px}
+@media (max-width:760px){body{grid-template-columns:1fr}aside{display:none}.conv{padding:16px}header,footer{padding-left:16px;padding-right:16px}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<aside>
+  <div class="brand"><b>Hermes</b><span class="tag seco" id="seco" hidden>en seco</span><span class="tag noche" id="noche" hidden>turno de noche</span></div>
+  <button class="nuevo" id="nuevo">＋ Nuevo objetivo</button>
+  <div class="lista" id="lista"></div>
+  <details class="panel" id="pconf"><summary>Confianza por proyecto</summary><div class="conf" id="conf"></div></details>
+  <details class="panel"><summary>Quién construye mejor</summary><div id="rank"></div></details>
+  <div class="uso" id="uso"></div>
+</aside>
+<main>
+  <header><h1 id="titulo">Hermes</h1><span class="meta-chip" id="metrica" hidden></span><span class="chip" id="chip" hidden></span><button class="parar" id="parar" hidden>Parar</button></header>
+  <div class="conv" id="conv"></div>
+  <footer>
+    <form id="f">
+      <select id="proyecto" aria-label="Proyecto"></select>
+      <textarea id="txt" rows="1" placeholder="Escribe tu objetivo"></textarea>
+      <button class="btn pri" type="submit" id="enviar">Enviar</button>
+    </form>
+    <div class="err" id="err" role="alert"></div>
+  </footer>
+</main>
+<script>
+const $ = s => document.querySelector(s);
+const ESTADO = {contrato: 'Preparando el contrato', esperando_contrato: 'Fija el contrato', planificando: 'Planificando', esperando_aprobacion: 'Espera tu aprobación',
+  en_marcha: 'En marcha', necesita_owner: 'Te necesita', hecho: 'Hecho', parado: 'Parado'};
+const TAREA = {propuesta: 'propuesta', ready: 'en cola', todo: 'en cola', running: 'trabajando', done: 'hecha', blocked: 'bloqueada',
+  triage: 'bloqueada', archived: 'retirada', error: 'error'};
+const MOTOR = {equipo: 'código', anuncios: 'anuncios · ensayo', investigacion: 'investigación', contenido: 'contenido'};
+const NIVEL = ['Apruebo yo todo', 'Solas las fáciles', 'Solas fáciles y medias'];
+let D = null, sel = null, nuevo = false, enviando = false;
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;'}[c]));
+const hora = iso => iso ? new Date(iso).toLocaleTimeString('es-ES', {hour: '2-digit', minute: '2-digit'}) : '';
+const num = n => (n ?? '—').toLocaleString('es-ES');
+
+async function api(ruta, body){
+  const r = await fetch(ruta, body ? {method: 'POST', headers: {'Content-Type': 'application/json', 'X-Hermes': '1'}, body: JSON.stringify(body)} : {});
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(j.error || 'No se ha podido');
+  return j;
+}
+async function cargar(){ try { D = await api('/api/estado'); pintar(); } catch { $('#err').textContent = 'Sin conexión con Hermes.'; } }
+const actual = () => D?.objetivos.find(o => o.id === sel) || null;
+
+function lateral(){
+  $('#seco').hidden = !D.seco; $('#noche').hidden = !D.noche;
+  $('#lista').innerHTML = D.objetivos.map(o => `<button class="it${o.id === sel && !nuevo ? ' on' : ''}" data-id="${o.id}">
+    <span class="t">${esc(o.objetivo)}</span><span class="s"><i class="dot ${o.estado}"></i>${ESTADO[o.estado] || o.estado}</span></button>`).join('')
+    || '<p style="padding:10px;font-size:12px;color:var(--ink3)">Aún no hay objetivos.</p>';
+  $('#lista').querySelectorAll('.it').forEach(b => b.onclick = () => { sel = b.dataset.id; nuevo = false; pintar(); });
+  if (!$('#pconf').open || !$('#conf').children.length)
+    $('#conf').innerHTML = Object.entries(D.proyectos).map(([id, n]) => { const c = D.confianza[id] || {};
+      return `<span>${esc(n)}</span><select data-p="${esc(id)}">${NIVEL.map((t, i) => `<option value="${i}"${(c.maximo || 0) === i ? ' selected' : ''}>${t}</option>`).join('')}</select>
+      <small>Ganado: nivel ${c.ganado || 0}${c.maximo ? ` · ahora ${c.nivel}` : ''}</small>`; }).join('');
+  $('#conf').querySelectorAll('select').forEach(s => s.onchange = async () => {
+    try { await api('/api/confianza', {proyecto: s.dataset.p, maximo: +s.value}); await cargar(); } catch (e) { $('#err').textContent = e.message; } });
+  const tb = D.ranking?.tabla || {};
+  $('#rank').innerHTML = Object.keys(tb).length ? `<table><tr><th>Tipo</th><th>Claude</th><th>Codex</th></tr>${Object.entries(tb).map(([cat, v]) => {
+    const p = q => v[q] ? Math.round(100 * v[q].primera / v[q].n) : null, a = p('Claude'), b = p('Codex');
+    return `<tr><td>${esc(cat)}</td><td class="${a > b ? 'g' : ''}">${a ?? '—'} %</td><td class="${b > a ? 'g' : ''}">${b ?? '—'} %</td></tr>`; }).join('')}</table>
+    <p style="margin-top:6px;color:var(--ink3)">A la primera, últimos ${D.ranking.dias} días.</p>` : '<p style="margin-top:6px">Sin datos todavía.</p>';
+  const u = D.uso, t = D.topes;
+  $('#uso').innerHTML = `<span>Hoy: ${u.rondas || 0}/${t.rondas_por_dia} rondas · ${u.llamadas || 0}/${t.llamadas_por_dia} llamadas</span>
+    <div class="bar"><i style="width:${Math.min(100, (u.llamadas || 0) / t.llamadas_por_dia * 100)}%"></i></div>
+    ${D.freno ? `<span class="freno">Equipo frenado: ${esc(D.freno)}</span>` : '<span>El equipo puede trabajar.</span>'}`;
+}
+
+function pintar(){
+  if (!nuevo && !actual() && D.objetivos.length) sel = D.objetivos[0].id;
+  lateral();
+  const o = nuevo ? null : actual();
+  $('#proyecto').hidden = !!o;
+  $('#txt').placeholder = !o ? 'Qué quieres conseguir (mejor con una cifra: «20 leads de TF esta semana»)' : o.estado === 'necesita_owner' ? 'Responde a Hermes («sigue» para insistir)' :
+    o.estado === 'esperando_contrato' ? 'O dile qué cambiar del contrato' : o.estado === 'esperando_aprobacion' ? 'O dile qué cambiar de esta ronda' : 'Escribe a Hermes';
+  $('#titulo').textContent = o ? o.objetivo : 'Nuevo objetivo';
+  $('#chip').hidden = !o; if (o) $('#chip').textContent = ESTADO[o.estado] || o.estado;
+  $('#parar').hidden = !o || ['hecho', 'parado'].includes(o.estado);
+  const met = o?.contrato?.metrica, ult = o?.medidas?.[o.medidas.length - 1];
+  $('#metrica').hidden = !met;
+  if (met) { const v = ult?.valor, pct = v == null ? 0 : met.sentido === '<=' ? (v <= met.objetivo ? 100 : Math.max(0, 100 * met.objetivo / v)) : Math.min(100, 100 * v / met.objetivo);
+    $('#metrica').innerHTML = `<span class="nom">${esc(met.nombre)}:</span> <b>${num(v)}</b> / ${met.sentido === '<=' ? '≤ ' : ''}${num(met.objetivo)}<span class="bar"><i style="width:${pct}%"></i></span>`; }
+  const c = $('#conv'), abajo = c.scrollHeight - c.scrollTop - c.clientHeight < 40;
+  if (!o){
+    c.innerHTML = `<div class="vacio"><h2>¿Qué quieres conseguir?</h2><p>Hermes fija contigo cómo medirlo, reparte el trabajo entre código, anuncios, investigación
+      y contenido, y Claude y Codex debaten cada ronda. Tú apruebas (aquí, en WhatsApp o por voz) y él lo comprueba con capturas hasta que la cifra se cumpla.</p></div>`;
+    return;
+  }
+  const items = []; let ri = 0, contratoPintado = false;
+  for (const m of o.mensajes){
+    items.push(`<div class="msg ${m.de === 'owner' ? 'owner' : 'hermes'}">${esc(m.texto)}<small>${hora(m.hora)}</small></div>`);
+    if (!contratoPintado && m.de === 'hermes' && m.texto.startsWith('Propuesta:')){ items.push(contrato(o)); contratoPintado = true; }
+    const r = o.rondas[ri];
+    if (r && m.de === 'hermes' && m.texto.startsWith(`Ronda ${r.n} lista`)){ items.push(ronda(o, r)); ri++; }
+  }
+  if (o.estado === 'hecho' && o.cierre) items.push(cierre(o));
+  c.innerHTML = items.join('');
+  c.querySelectorAll('[data-acc]').forEach(b => b.onclick = () => accion(b.dataset.acc, o));
+  const chk = c.querySelector('#imp'), ap = c.querySelector('[data-acc="aprobar"]');
+  if (chk && ap){ ap.disabled = !chk.checked; chk.onchange = () => ap.disabled = !chk.checked; }
+  if (abajo) c.scrollTop = c.scrollHeight;
+}
+
+function contrato(o){
+  const c = o.contrato || o.contrato_propuesto, vivo = o.estado === 'esperando_contrato', m = c?.metrica;
+  if (!c) return '';
+  return `<section class="card"><h3>Contrato<span>${vivo ? 'propuesto' : 'fijado'}</span></h3><p class="res">${esc(c.exito)}</p>
+    <dl class="kv">${m ? `<dt>Se mide</dt><dd>${esc(m.nombre)} ${m.sentido === '<=' ? '≤' : '≥'} ${num(m.objetivo)} en ${m.dias || 7} días</dd>` : `<dt>Se mide</dt><dd>${esc(c.nota_metrica || 'contigo, al final de cada ronda')}</dd>`}
+    ${c.plazo_dias ? `<dt>Plazo</dt><dd>${c.plazo_dias} días</dd>` : ''}<dt>Presupuesto</dt><dd>${c.presupuesto_llamadas} llamadas a modelos</dd>
+    ${(c.no_tocar || []).length ? `<dt>No se toca</dt><dd>${c.no_tocar.map(esc).join(', ')}</dd>` : ''}</dl>
+    ${vivo ? '<div class="acciones"><button class="btn pri" data-acc="fijar">Fijar contrato</button><span style="font-size:13px;color:var(--ink3)">o escribe abajo qué cambiar</span></div>' : ''}</section>`;
+}
+
+function ronda(o, r){
+  const viva = o.estado === 'esperando_aprobacion' && r === o.rondas[o.rondas.length - 1];
+  const imp = r.tareas.some(t => t.importante), v = r.verificacion || {}, d = r.debate;
+  const estado = {descartada: 'descartada', terminada: 'terminada', propuesta: 'propuesta'}[r.estado] || 'en marcha';
+  return `<section class="card"><h3>Ronda ${r.n}<span>${estado}${r.aprobada_por && r.aprobada_por.includes('sola') ? ' · aprobada sola' : ''}${r.estimacion ? ` · ≈ ${r.estimacion.minutos} min · ${String(r.estimacion.usd.toFixed(2)).replace('.', ',')} $` : ''}</span></h3>
+    <p class="res">${esc(r.resumen)}</p>
+    ${d && (d.diferencia || d.codex) ? `<div class="debate">${d.diferencia ? `<span><b>Debate:</b> gana ${d.elegido === 'codex' ? 'Codex' : d.elegido === 'mezcla' ? 'una mezcla' : 'Claude'}. ${esc(d.diferencia)}</span>` : ''}
+      ${d.codex && d.elegido !== 'codex' ? `<span style="color:var(--ink3)">Codex: ${esc(d.codex)}</span>` : ''}</div>` : ''}
+    ${r.tareas.map(t => { const vc = v.tareas?.[t.titulo]?.criterios;
+      return `<div class="tarea"><div class="tt"><b><span class="motor">${MOTOR[t.motor] || t.motor}</span>${esc(t.titulo)}</b><span class="est ${t.estado}">${TAREA[t.estado] || t.estado}</span></div>
+      ${t.archivos ? `<div class="meta">${esc(t.proyecto)} · ${esc(t.dificultad || '')} · ${t.archivos.map(esc).join(', ')}</div>` : t.proyecto ? `<div class="meta">${esc(t.proyecto)}</div>` : ''}
+      ${viva ? `<div class="det">${esc(t.detalle)}</div>` : ''}
+      ${viva && t.criterios?.length ? `<div class="crit">${t.criterios.map(c => `<span>· ${esc(c)}</span>`).join('')}</div>` : ''}
+      ${vc ? `<div class="crit">${vc.map(c => `<span class="${c.ok ? 'ok' : 'no'}">${c.ok ? '✓' : '✕'} ${esc(c.criterio)}${c.ok ? '' : ` — ${esc(c.nota)}`}</span>`).join('')}</div>` : ''}
+      ${t.importante ? `<div class="imp">Importante: ${esc(t.importante)}</div>` : ''}
+      ${t.resultado && !viva ? `<div class="resu">${esc(t.resultado.slice(0, 400))}</div>` : ''}</div>`; }).join('')}
+    ${(v.capturas || []).length ? `<div class="caps">${v.capturas.map(f => `<a href="/api/captura/${o.id}/${esc(f)}" target="_blank" rel="noopener"><img src="/api/captura/${o.id}/${esc(f)}" alt="Captura ${esc(f)}" loading="lazy"></a>`).join('')}</div>` : ''}
+    ${r.avisos?.length ? `<div class="debate" style="color:var(--ink3)">${r.avisos.map(esc).join(' · ')}</div>` : ''}
+    ${viva ? `${imp ? '<label class="check"><input type="checkbox" id="imp"> He revisado las tareas importantes</label>' : ''}
+      <div class="acciones"><button class="btn pri" data-acc="aprobar">Aprobar ronda</button><button class="btn sec" data-acc="descartar">Descartar</button></div>` : ''}
+  </section>`;
+}
+
+function cierre(o){
+  const c = o.cierre;
+  return `<section class="card"><h3>Cierre<span>${c.dias} día${c.dias === 1 ? '' : 's'}</span></h3>
+    <dl class="kv"><dt>Rondas</dt><dd>${c.rondas}${c.descartadas ? ` (+${c.descartadas} descartadas)` : ''}</dd><dt>Tareas</dt><dd>${c.integradas} de ${c.tareas} hechas</dd>
+    <dt>Motores</dt><dd>${c.motores.map(m => MOTOR[m] || m).join(', ')}</dd><dt>Uso</dt><dd>${c.llamadas} llamadas a modelos</dd></dl>
+    <p style="font-size:13px;color:var(--ink3)">Queda como punto de partida para objetivos parecidos.</p></section>`;
+}
+
+async function accion(acc, o){
+  $('#err').textContent = '';
+  try {
+    if (acc === 'fijar') await api('/api/contrato', {id: o.id});
+    if (acc === 'aprobar') await api('/api/aprobar', {id: o.id, importantes: !!document.querySelector('#imp')?.checked});
+    if (acc === 'descartar'){ const m = prompt('¿Qué cambiarías? (opcional)'); if (m === null) return; await api('/api/descartar', {id: o.id, motivo: m}); }
+    await cargar();
+  } catch (e) { $('#err').textContent = e.message; }
+}
+
+$('#nuevo').onclick = () => { nuevo = true; sel = null; pintar(); $('#txt').focus(); };
+$('#parar').onclick = async () => { const o = actual(); if (!o || !confirm('¿Parar este objetivo? Hermes no planificará ni encargará nada más.')) return;
+  try { await api('/api/parar', {id: o.id}); await cargar(); } catch (e) { $('#err').textContent = e.message; } };
+$('#txt').addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey){ e.preventDefault(); $('#f').requestSubmit(); } });
+$('#txt').addEventListener('input', e => { e.target.style.height = 'auto'; e.target.style.height = e.target.scrollHeight + 'px'; });
+$('#f').onsubmit = async e => {
+  e.preventDefault(); if (enviando) return;
+  const texto = $('#txt').value.trim(); if (!texto) return;
+  enviando = true; $('#enviar').disabled = true; $('#err').textContent = '';
+  try {
+    const o = nuevo ? null : actual();
+    if (!o){ const r = await api('/api/objetivo', {texto, proyecto: $('#proyecto').value}); sel = r.objetivo.id; nuevo = false; }
+    else await api('/api/responder', {id: o.id, texto});
+    $('#txt').value = ''; $('#txt').style.height = 'auto'; await cargar();
+  } catch (x) { $('#err').textContent = x.message; }
+  finally { enviando = false; $('#enviar').disabled = false; }
+};
+(async () => {
+  await cargar();
+  $('#proyecto').innerHTML = '<option value="">Cualquier proyecto</option>' +
+    Object.entries(D?.proyectos || {}).map(([id, n]) => `<option value="${esc(id)}">${esc(n)}</option>`).join('');
+  setInterval(cargar, 3000);
+})();
+</script>
+</body>
+</html>

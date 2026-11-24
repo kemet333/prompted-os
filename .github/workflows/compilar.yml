@@ -1,0 +1,98 @@
+# Tests on macOS and Windows, then the installers: the native macOS app (.dmg, Apple silicon) and the desktop app for
+# Windows (.exe, x64). Runs on demand and on version tags (v*); the installers are attached to the run (and to the
+# release, for tags). Installer names carry no version, so releases/latest/download/<name> links never change.
+name: compilar
+on:
+  workflow_dispatch:
+  push:
+    tags: ['v*']
+permissions:
+  contents: write
+env:
+  PYTHONUTF8: '1'
+jobs:
+  probar:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: '26.8.1'}
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.12'}
+      - run: npm ci --no-audit --no-fund
+        working-directory: alfred-os
+      - run: npm ci --no-audit --no-fund
+        working-directory: mac/local-workspace
+      - run: npm ci --no-audit --no-fund
+        working-directory: whatsapp
+      - name: Motor del equipo y Hermes
+        run: |
+          python -m pip install --quiet tzdata
+          python -m unittest discover -s equipo
+          python -m unittest discover -s hermes -p "test_*.py"
+      - name: Interfaz
+        shell: bash
+        working-directory: alfred-os
+        run: npx tsc --noEmit && for c in scripts/*-checks.mjs; do node "$c" || exit 1; done
+      - name: Servidor local
+        if: runner.os == 'Windows'
+        shell: bash
+        working-directory: mac/local-workspace
+        run: |
+          git config --global user.email ci@localhost && git config --global user.name ci
+          node ../../alfred-os/node_modules/vite/bin/vite.js build --config vite.config.ts
+          node build-server.mjs
+          fail=0; for c in runtime telegram cartera contenido voice; do node $c-checks.mjs || fail=1; done; exit $fail
+      - name: App de Mac, servidor local, inbox y WhatsApp
+        if: runner.os == 'macOS'
+        working-directory: mac
+        run: |
+          git config --global user.email ci@localhost && git config --global user.name ci
+          (cd local-workspace && node ../../alfred-os/node_modules/vite/bin/vite.js build --config vite.config.ts)
+          ./test.sh
+  mac:
+    needs: probar
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: '26.8.1'}
+      - run: npm ci --no-audit --no-fund
+        working-directory: alfred-os
+      - run: npm ci --no-audit --no-fund
+        working-directory: mac/local-workspace
+      - run: ./build.sh
+        working-directory: mac
+      - name: Imagen de disco
+        run: |
+          mkdir -p dmg && ditto "mac/Prompted OS.app" "dmg/Prompted OS.app" && ln -s /Applications dmg/Applications
+          hdiutil create -volname "Prompted OS" -srcfolder dmg -ov -format UDZO Prompted-OS-Mac.dmg
+      - uses: actions/upload-artifact@v4
+        with: {name: instalador-macOS, path: Prompted-OS-Mac.dmg}
+      - if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with: {files: Prompted-OS-Mac.dmg}
+  windows:
+    needs: probar
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: '26.8.1'}
+      - run: npm ci --no-audit --no-fund
+        working-directory: alfred-os
+      - run: npm ci --no-audit --no-fund
+        working-directory: mac/local-workspace
+      - run: npm install --no-audit --no-fund
+        working-directory: escritorio
+      - run: node preparar.mjs && npx electron-builder --win --publish never
+        working-directory: escritorio
+      - uses: actions/upload-artifact@v4
+        with: {name: instalador-Windows, path: escritorio/dist/*.exe}
+      - if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with: {files: escritorio/dist/*.exe}

@@ -1,0 +1,6 @@
+/* ---------- Pulido general (11/11/2026, Owner: «mejora todo lo que veas mejorable») ----------
+   Se carga el último. Arreglos pequeños y comprobados a escritorio y en ventana estrecha. */
+
+/* Barra de secciones: centrada solo si cabe; si no, empieza en «Alfred» y se desliza (antes «Alfred» quedaba cortado). */
+.jarvis .s-navigation{justify-content:safe center;overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:none;max-width:100%;scroll-padding-inline:12px}
+.jarvis .s-navigation::-webkit-scrollbar{display:none}
