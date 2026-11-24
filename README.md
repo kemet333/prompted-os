@@ -31,7 +31,7 @@ natural voice (otherwise the system voice), a **Telegram** bot of your own, **wh
 - **A team of AI agents**: six departments (Operations, Intelligence, Product, Creative, Business, Control) plan every
   morning, build in their own branch, review each other and wait for your approval. One task per agent, a receipt for
   every change. Claude builds and reviews; with **Codex** installed, one builds and the other reviews.
-- **Hermes** (optional): give it a goal and it carries it to the end with the team, proposing first how to measure it.
+- **Hermes** (optional, macOS and Linux): give it a goal and it carries it to the end with the team, proposing first how to measure it.
 - **Your day**: a short to-do every morning, a day and week close, spaced-repetition review, Calendar and Reminders.
 - **Projects and Deliveries**: your portfolio, read from your notes, and everything that waits for your decision,
   explained in plain words with one button per decision.
