@@ -3,10 +3,10 @@ import {createRequire} from 'node:module';
 import {mkdtempSync,rmSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
-import {pathToFileURL} from 'node:url';
+import {pathToFileURL,fileURLToPath} from 'node:url';
 const require=createRequire(import.meta.url),temp=mkdtempSync(join(tmpdir(),'project-tree-'));
 try{
- await require('esbuild').build({entryPoints:[new URL('../lib/project-tree-layout.ts',import.meta.url).pathname],outfile:join(temp,'layout.mjs'),bundle:true,platform:'node',format:'esm',logLevel:'silent'});
+ await require('esbuild').build({entryPoints:[fileURLToPath(new URL('../lib/project-tree-layout.ts',import.meta.url))],outfile:join(temp,'layout.mjs'),bundle:true,platform:'node',format:'esm',logLevel:'silent'});
  const {projectTreeLayout:layout,treeCurve}=await import(pathToFileURL(join(temp,'layout.mjs')));
  let scenarios=0;
  for(const width of [720,760,900,1024,1280,1600])for(const branches of [3,4,6])for(const leaves of [0,1,7,18,40]){

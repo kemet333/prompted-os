@@ -3,10 +3,10 @@ import {createRequire} from 'node:module';
 import {mkdtempSync,rmSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
-import {pathToFileURL} from 'node:url';
+import {pathToFileURL,fileURLToPath} from 'node:url';
 const require=createRequire(import.meta.url),temp=mkdtempSync(join(tmpdir(),'life-areas-'));
 try{
- await require('esbuild').build({entryPoints:[new URL('../lib/life-areas.ts',import.meta.url).pathname],outfile:join(temp,'model.mjs'),bundle:true,platform:'node',format:'esm',logLevel:'silent'});
+ await require('esbuild').build({entryPoints:[fileURLToPath(new URL('../lib/life-areas.ts',import.meta.url))],outfile:join(temp,'model.mjs'),bundle:true,platform:'node',format:'esm',logLevel:'silent'});
  const model=await import(pathToFileURL(join(temp,'model.mjs')));
  const project=(id,division,extra={})=>({id,division,name:id,line:'',stage:'',next:'',repo:'',evidence:'',...extra});
  const list=[project('tienda','trabajo'),project('idea','proyectos'),project('fitness','personal'),project('casa','vida'),project('curso','aprender'),project('learning','personal'),project('sleep-project','x',{lifeArea:'personal',lifeCategory:'sleep'}),project('new-business','x',{lifeArea:'business'}),project('unknown','unknown')];
