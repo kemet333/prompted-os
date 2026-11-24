@@ -224,7 +224,7 @@ try {
       const ganadores = path.join(sources.PROMPTED_OS_DAY_REELS, madridDia(1), 'ganadores.json');
       fs.mkdirSync(path.dirname(ganadores), { recursive: true });
       fs.writeFileSync(ganadores, JSON.stringify({ 'norte-capital': { name: 'kc-1730', h: 'h2', titulo: 'Gancho prueba', vistas: 900 } }));
-      const { avisoEnlacePerfil, primerPerfilSinEnlace, ofreceLanzado, perfilParaLanzar, avisoSinEnlace, baseEnlaceValida, enlaceMedido, etiquetaEnlace, sinEnlaceMedido, sinEnlaceHaceDias, esReelBueno, lineaPorMedir, lineaSinEnlace, lineaSinEnlaceMedida, medir, porMedir, porRed, read, reprogramar, marcar, guardarPerfil, PREGUNTA_CIFRAS_INICIO, preguntaCifras, cifrasDeTexto, publicacionDeRespuesta, siguientePorMedir, apuntadoCifras } = await import(bundle);
+      const { avisoEnlacePerfil, primerPerfilSinEnlace, ofreceLanzado, perfilParaLanzar, avisoSinEnlace, baseEnlaceValida, enlaceMedido, etiquetaEnlace, sinEnlaceMedido, sinEnlaceHaceDias, esReelBueno, lineaPorMedir, lineaSinEnlace, lineaSinEnlaceMedida, medir, porMedir, porRed, read, reprogramar, marcar, guardarPerfil, PREGUNTA_CIFRAS_INICIO, preguntaCifras, cifrasDeTexto, publicacionDeRespuesta, siguientePorMedir, apuntadoCifras } = await import(pathToFileURL(bundle).href);
       const data = path.join(isolated, 'Workspace');
       const file = path.join(data, 'contenido', 'medidas.json');
       const cifras = { vistas: '100', visitas: 10, clics: 3, compras: 0 };
@@ -515,7 +515,7 @@ try {
     const require = createRequire(process.env.PROMPTED_OS_DEPS_DIR ? path.join(process.env.PROMPTED_OS_DEPS_DIR, 'package.json') : path.resolve(localRoot, '../../alfred-os/package.json'));
     const bundle = path.join(runRoot, 'contenido-tasas.mjs');
     await require('esbuild').build({ entryPoints: [path.resolve(localRoot, '../../alfred-os/lib/contenido-tasas.ts')], outfile: bundle, bundle: true, platform: 'node', format: 'esm', target: 'node26', logLevel: 'warning' });
-    const { mejores, posicionTasa, publicados, tasa } = await import(bundle);
+    const { mejores, posicionTasa, publicados, tasa } = await import(pathToFileURL(bundle).href);
     const mezcla = [
       { id: 'normal', estado: 'publicado', fuente: 'machine', marcable: false },
       { id: 'ritmo marcable', estado: 'publicado', fuente: 'ritmo', marcable: true },
@@ -569,7 +569,7 @@ try {
     const require = createRequire(process.env.PROMPTED_OS_DEPS_DIR ? path.join(process.env.PROMPTED_OS_DEPS_DIR, 'package.json') : path.resolve(localRoot, '../../alfred-os/package.json'));
     const bundle = path.join(runRoot, 'contenido-analisis.mjs');
     await require('esbuild').build({ entryPoints: [path.resolve(localRoot, '../../alfred-os/lib/contenido-analisis.ts')], outfile: bundle, bundle: true, platform: 'node', format: 'esm', target: 'node26', logLevel: 'warning' });
-    const { avisoAnalisis } = await import(bundle);
+    const { avisoAnalisis } = await import(pathToFileURL(bundle).href);
     const ahora = new Date('2026-10-30T12:00:00.000Z');
     const antigua = new Date(ahora.getTime() - 4 * 86400_000).toISOString();
     assert.equal(avisoAnalisis(true, antigua, ahora), '');
@@ -599,7 +599,7 @@ try {
     const require = createRequire(process.env.PROMPTED_OS_DEPS_DIR ? path.join(process.env.PROMPTED_OS_DEPS_DIR, 'package.json') : path.resolve(localRoot, '../../alfred-os/package.json'));
     const bundle = path.join(runRoot, 'experimentos-cola.mjs');
     await require('esbuild').build({ entryPoints: [path.resolve(localRoot, '../../alfred-os/lib/experimentos-cola.ts')], outfile: bundle, bundle: true, platform: 'node', format: 'esm', target: 'node26', logLevel: 'warning' });
-    const { avisoColaLanzar, esperaDesde, etiquetaSinMedir, formularioVigente, lineaCifrasCalendario, lineaAtribucionCalendario, descartesDeLanzar, MOTIVOS_DESCARTE, pendientesDeLanzar, seLanzaEnPerfiles, tareasDeLanzar, TAREA_ID } = await import(bundle);
+    const { avisoColaLanzar, esperaDesde, etiquetaSinMedir, formularioVigente, lineaCifrasCalendario, lineaAtribucionCalendario, descartesDeLanzar, MOTIVOS_DESCARTE, pendientesDeLanzar, seLanzaEnPerfiles, tareasDeLanzar, TAREA_ID } = await import(pathToFileURL(bundle).href);
     // Entregas deja en sessionStorage las tareas que Contenido apunta como lanzadas: solo ids válidos, sin repetir y hasta 10.
     assert.deepEqual(tareasDeLanzar('["t_036cee09"]'), ['t_036cee09']);
     assert.deepEqual(tareasDeLanzar('["t_036cee09","t_036cee09"]'), ['t_036cee09']);
